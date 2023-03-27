@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.orhazal.bankingkata.domain.Operation;
-import com.orhazal.bankingkata.domain.enums.OperationType;
+import com.orhazal.bankingkata.enums.OperationType;
 
 public interface AccountService {
 

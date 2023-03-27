@@ -6,7 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.orhazal.bankingkata.domain.Operation;
-import com.orhazal.bankingkata.domain.enums.OperationType;
+import com.orhazal.bankingkata.enums.OperationType;
+import com.orhazal.bankingkata.exceptions.AccountNotFoundException;
 import com.orhazal.bankingkata.repository.AccountRepository;
 import com.orhazal.bankingkata.repository.OperationRepository;
 
@@ -21,7 +22,9 @@ public class AccountServiceImplementation implements AccountService {
 
 	@Override
 	public Operation processOperation(OperationType type, BigDecimal amount, Long accountId) {
-		// TODO Auto-generated method stub
+		if (!accountRepository.findById(accountId).isPresent()) {
+			throw new AccountNotFoundException("Account not found with accountId : " + accountId);
+		}
 		return null;
 	}
 
