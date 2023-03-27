@@ -1,4 +1,4 @@
-package com.orhazal.bankingkata.domain.enums;
+package com.orhazal.bankingkata.enums;
 
 public enum OperationType {
 	DEPOSIT, WITHDRAWAL
