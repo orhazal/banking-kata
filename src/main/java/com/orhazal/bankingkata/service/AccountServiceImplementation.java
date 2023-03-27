@@ -12,6 +12,7 @@ import com.orhazal.bankingkata.domain.Account;
 import com.orhazal.bankingkata.domain.Operation;
 import com.orhazal.bankingkata.enums.OperationType;
 import com.orhazal.bankingkata.exceptions.AccountNotFoundException;
+import com.orhazal.bankingkata.exceptions.NoEnoughFundsException;
 import com.orhazal.bankingkata.exceptions.NullAmountException;
 import com.orhazal.bankingkata.repository.AccountRepository;
 import com.orhazal.bankingkata.repository.OperationRepository;
@@ -46,6 +47,11 @@ public class AccountServiceImplementation implements AccountService {
 		}
 		// Calculate new balance
 		BigDecimal balanceAfterOperation = OperationType.DEPOSIT.equals(type) ? currentBalance.add(amount) : currentBalance.subtract(amount);
+		// Check if balance is negative
+		if (balanceAfterOperation.signum() == -1) {
+			throw new NoEnoughFundsException(
+					String.format("No enough funds to withdraw this amount (%s) from your current balance (%s)", amount, currentBalance));
+		}
 		// Result operation building
 		Operation resultOperation = Operation.builder()
 				.account(account.get())

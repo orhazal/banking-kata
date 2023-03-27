@@ -1,13 +1,10 @@
 package com.orhazal.bankingkata.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.Optional;
 import java.util.Set;
 
@@ -22,6 +19,7 @@ import com.orhazal.bankingkata.domain.Account;
 import com.orhazal.bankingkata.domain.Operation;
 import com.orhazal.bankingkata.enums.OperationType;
 import com.orhazal.bankingkata.exceptions.AccountNotFoundException;
+import com.orhazal.bankingkata.exceptions.NoEnoughFundsException;
 import com.orhazal.bankingkata.exceptions.NullAmountException;
 import com.orhazal.bankingkata.repository.AccountRepository;
 import com.orhazal.bankingkata.repository.OperationRepository;
@@ -37,38 +35,10 @@ public class AccountServiceTest {
 	private AccountServiceImplementation accountServiceImplementation;
 
 	private static Account account;
-	private static Operation depositOperation;
-	private static Operation withdrawalOperation;
-	private static Operation negativeAmountOperation;
-	private static Operation zeroAmountOperation;
 
 	@BeforeAll
 	public static void setupFakeData() {
 		account = Account.builder().id(1L).build();
-		depositOperation = Operation.builder().id(1L).
-				account(account).
-				amount(new BigDecimal(1000.15)).
-				type(OperationType.DEPOSIT).
-				balanceAfterOperation(new BigDecimal(1000.15)).
-				timestamp(LocalDateTime.now()).build();
-		withdrawalOperation = Operation.builder().id(2L).
-				account(account).
-				amount(new BigDecimal(500.05)).
-				type(OperationType.WITHDRAWAL).
-				balanceAfterOperation(new BigDecimal(500.1)).
-				timestamp(LocalDateTime.now().plus(Period.ofDays(1))).build();
-		negativeAmountOperation = Operation.builder().id(3L).
-				account(account).
-				amount(new BigDecimal(5000.99)).
-				type(OperationType.WITHDRAWAL).
-				balanceAfterOperation(new BigDecimal(-4500.89)).
-				timestamp(LocalDateTime.now().plus(Period.ofDays(2))).build();
-		zeroAmountOperation = Operation.builder().id(4L).
-				account(account).
-				amount(new BigDecimal(0)).
-				type(OperationType.DEPOSIT).
-				balanceAfterOperation(new BigDecimal(0)).
-				timestamp(LocalDateTime.now()).build();
 	}
 
 	@DisplayName("When processing an operation, the accountId should return an existing account")
@@ -103,8 +73,17 @@ public class AccountServiceTest {
 		Operation firstOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(5), 1L);
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(Set.of(firstOperation)).build()));
 		Operation secondOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(10), 1L);
-		System.out.println(secondOperation);
 		assertThat(new BigDecimal(15).compareTo(secondOperation.getBalanceAfterOperation()) == 0);
+	}
+
+	@DisplayName("When withdrawing, account should have enough balance")
+	@Test
+	public void givenWithdraw_whenProcessOperation_thenBalanceShouldBePositive() {
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		Operation firstOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(100), 1L);
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(Set.of(firstOperation)).build()));
+		assertThrows(NoEnoughFundsException.class, 
+				() -> { accountServiceImplementation.processOperation(OperationType.WITHDRAWAL, new BigDecimal(200), 1L); });
 	}
 	
 }
