@@ -18,6 +18,7 @@ import com.orhazal.bankingkata.domain.Account;
 import com.orhazal.bankingkata.domain.Operation;
 import com.orhazal.bankingkata.enums.OperationType;
 import com.orhazal.bankingkata.exceptions.AccountNotFoundException;
+import com.orhazal.bankingkata.exceptions.NullAmountException;
 import com.orhazal.bankingkata.repository.AccountRepository;
 import com.orhazal.bankingkata.repository.OperationRepository;
 
@@ -73,6 +74,14 @@ public class AccountServiceTest {
 		when(accountRepository.findById(invalidAccountId)).thenReturn(Optional.empty());
 		assertThrows(AccountNotFoundException.class, 
 				() -> { accountServiceImplementation.processOperation(OperationType.DEPOSIT, BigDecimal.TEN, invalidAccountId); });
+	}
+
+	@DisplayName("When processing an operation, the amount shouldn't be zero")
+	@Test
+	public void givenNullAmount_whenProcessOperation_thenThrowsException() {
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		assertThrows(NullAmountException.class, 
+				() -> { accountServiceImplementation.processOperation(OperationType.DEPOSIT, BigDecimal.ZERO, 1L); });
 	}
 	
 }
