@@ -1,6 +1,8 @@
 package com.orhazal.bankingkata.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,14 +27,34 @@ public class AccountServiceImplementation implements AccountService {
 
 	@Override
 	public Operation processOperation(OperationType type, BigDecimal amount, Long accountId) {
+		// Check for account
 		Optional<Account> account = accountRepository.findById(accountId);
 		if (!account.isPresent()) {
 			throw new AccountNotFoundException("Account not found with accountId : " + accountId);
 		}
+		// Is the operation amount zero?
 		if (BigDecimal.ZERO.compareTo(amount) == 0) {
 			throw new NullAmountException("Cannot process a null amount for this operation");
 		}
-		return null;
+		// Get current balance from last operation
+		BigDecimal currentBalance;
+		if (account.get().getOperations() == null || account.get().getOperations().isEmpty()) {
+			currentBalance = BigDecimal.ZERO;
+		}
+		else {
+			currentBalance = account.get().getOperations().stream().max(Comparator.comparing(Operation::getTimestamp)).get().getBalanceAfterOperation();
+		}
+		// Calculate new balance
+		BigDecimal balanceAfterOperation = OperationType.DEPOSIT.equals(type) ? currentBalance.add(amount) : currentBalance.subtract(amount);
+		// Result operation building
+		Operation resultOperation = Operation.builder()
+				.account(account.get())
+				.amount(amount)
+				.balanceAfterOperation(balanceAfterOperation)
+				.timestamp(LocalDateTime.now())
+				.type(type)
+				.build();
+		return resultOperation;
 	}
 
 	@Override

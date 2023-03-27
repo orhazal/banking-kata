@@ -35,8 +35,8 @@ public class Operation {
 	private BigDecimal amount;
 
 	// Named balance after to be clear that it is the balance after the operation is done
-	@Column(name = "balance_after", nullable = false)
-	private BigDecimal balanceAfter;
+	@Column(name = "balance_after_operation", nullable = false)
+	private BigDecimal balanceAfterOperation;
 
 	@Column(name = "timestamp", nullable = false)
 	private LocalDateTime timestamp;

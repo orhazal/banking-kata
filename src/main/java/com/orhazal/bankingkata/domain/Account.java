@@ -29,7 +29,7 @@ public class Account {
 
 	// TODO : thought about lastBalanceMovement (LocalTime) and lastBalanceOperation (Operation) columns but it is duplicated info, can be checked in Operation table
 
-	@OneToMany(mappedBy="account", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
 	private Set<Operation> operations;
 
 }

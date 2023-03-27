@@ -1,5 +1,7 @@
 package com.orhazal.bankingkata.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -7,6 +9,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.Optional;
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,25 +49,25 @@ public class AccountServiceTest {
 				account(account).
 				amount(new BigDecimal(1000.15)).
 				type(OperationType.DEPOSIT).
-				balanceAfter(new BigDecimal(1000.15)).
+				balanceAfterOperation(new BigDecimal(1000.15)).
 				timestamp(LocalDateTime.now()).build();
 		withdrawalOperation = Operation.builder().id(2L).
 				account(account).
 				amount(new BigDecimal(500.05)).
 				type(OperationType.WITHDRAWAL).
-				balanceAfter(new BigDecimal(500.1)).
+				balanceAfterOperation(new BigDecimal(500.1)).
 				timestamp(LocalDateTime.now().plus(Period.ofDays(1))).build();
 		negativeAmountOperation = Operation.builder().id(3L).
 				account(account).
 				amount(new BigDecimal(5000.99)).
 				type(OperationType.WITHDRAWAL).
-				balanceAfter(new BigDecimal(-4500.89)).
+				balanceAfterOperation(new BigDecimal(-4500.89)).
 				timestamp(LocalDateTime.now().plus(Period.ofDays(2))).build();
 		zeroAmountOperation = Operation.builder().id(4L).
 				account(account).
 				amount(new BigDecimal(0)).
 				type(OperationType.DEPOSIT).
-				balanceAfter(new BigDecimal(0)).
+				balanceAfterOperation(new BigDecimal(0)).
 				timestamp(LocalDateTime.now()).build();
 	}
 
@@ -82,6 +86,25 @@ public class AccountServiceTest {
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
 		assertThrows(NullAmountException.class, 
 				() -> { accountServiceImplementation.processOperation(OperationType.DEPOSIT, BigDecimal.ZERO, 1L); });
+	}
+
+	@DisplayName("When processing an operation, the account balance should be zero when no operations")
+	@Test
+	public void givenNoOperations_whenProcessOperation_thenCurrentBalanceIsZero() {
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		Operation operation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, BigDecimal.TEN, 1L);
+		assertThat(BigDecimal.TEN.compareTo(operation.getBalanceAfterOperation()) == 0);
+	}
+
+	@DisplayName("When making deposits, balance amounts should add up")
+	@Test
+	public void givenDeposits_whenProcessOperation_thenAmountsAddedToBalance() {
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		Operation firstOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(5), 1L);
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(Set.of(firstOperation)).build()));
+		Operation secondOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(10), 1L);
+		System.out.println(secondOperation);
+		assertThat(new BigDecimal(15).compareTo(secondOperation.getBalanceAfterOperation()) == 0);
 	}
 	
 }
