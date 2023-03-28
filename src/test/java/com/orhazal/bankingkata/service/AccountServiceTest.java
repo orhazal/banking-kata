@@ -12,8 +12,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.orhazal.bankingkata.domain.Account;
 import com.orhazal.bankingkata.domain.Operation;
@@ -37,7 +39,7 @@ public class AccountServiceTest {
 	private static Account account;
 
 	@BeforeAll
-	public static void setupFakeData() {
+	public static void setup() {
 		account = Account.builder().id(1L).build();
 	}
 
@@ -62,6 +64,7 @@ public class AccountServiceTest {
 	@Test
 	public void givenNoOperations_whenProcessOperation_thenCurrentBalanceIsZero() {
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		when(operationRepository.save(Mockito.any(Operation.class))).then(AdditionalAnswers.returnsFirstArg());
 		Operation operation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, BigDecimal.TEN, 1L);
 		assertThat(BigDecimal.TEN.compareTo(operation.getBalanceAfterOperation()) == 0);
 	}
@@ -70,6 +73,7 @@ public class AccountServiceTest {
 	@Test
 	public void givenDeposits_whenProcessOperation_thenAmountsAddedToBalance() {
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		when(operationRepository.save(Mockito.any(Operation.class))).then(AdditionalAnswers.returnsFirstArg());
 		Operation firstOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(5), 1L);
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(Set.of(firstOperation)).build()));
 		Operation secondOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(10), 1L);
@@ -80,6 +84,7 @@ public class AccountServiceTest {
 	@Test
 	public void givenWithdraw_whenProcessOperation_thenBalanceShouldBePositive() {
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		when(operationRepository.save(Mockito.any(Operation.class))).then(AdditionalAnswers.returnsFirstArg());
 		Operation firstOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(100), 1L);
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(Set.of(firstOperation)).build()));
 		assertThrows(NoEnoughFundsException.class, 

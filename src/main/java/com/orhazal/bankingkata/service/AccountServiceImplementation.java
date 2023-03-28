@@ -60,7 +60,8 @@ public class AccountServiceImplementation implements AccountService {
 				.timestamp(LocalDateTime.now())
 				.type(type)
 				.build();
-		return resultOperation;
+		// Save operation
+		return operationRepository.save(resultOperation);
 	}
 
 	@Override
