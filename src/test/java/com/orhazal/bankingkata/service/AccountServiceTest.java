@@ -21,6 +21,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+
 import com.orhazal.bankingkata.domain.Account;
 import com.orhazal.bankingkata.domain.Operation;
 import com.orhazal.bankingkata.enums.OperationType;
@@ -30,6 +32,7 @@ import com.orhazal.bankingkata.exceptions.NullAmountException;
 import com.orhazal.bankingkata.repository.AccountRepository;
 import com.orhazal.bankingkata.repository.OperationRepository;
 
+@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
 

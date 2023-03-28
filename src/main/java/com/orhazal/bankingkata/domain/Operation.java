@@ -3,6 +3,7 @@ package com.orhazal.bankingkata.domain;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.orhazal.bankingkata.enums.OperationType;
 
 import jakarta.persistence.Column;
@@ -31,7 +32,7 @@ public class Operation {
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	@Column(name = "amount", nullable = false)
+	@Column(name = "amount")
 	private BigDecimal amount;
 
 	// Named balance after to be clear that it is the balance after the operation is done
@@ -46,6 +47,7 @@ public class Operation {
 
 	@JoinColumn(name = "account", nullable = false)
 	@ManyToOne(fetch = FetchType.EAGER, targetEntity = Account.class)
+	@JsonBackReference // Jackson annotation to avoid infinite looping in the bidirectional relationship
 	private Account account;
 
 }

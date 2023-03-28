@@ -2,6 +2,8 @@ package com.orhazal.bankingkata.domain;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,7 +17,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "operation")
+@Table(name = "account")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -27,9 +29,8 @@ public class Account {
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	// TODO : thought about lastBalanceMovement (LocalTime) and lastBalanceOperation (Operation) columns but it is duplicated info, can be checked in Operation table
-
 	@OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
+	@JsonManagedReference
 	private List<Operation> operations;
 
 }
