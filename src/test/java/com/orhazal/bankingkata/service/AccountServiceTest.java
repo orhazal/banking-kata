@@ -2,11 +2,12 @@ package com.orhazal.bankingkata.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -75,7 +76,7 @@ public class AccountServiceTest {
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
 		when(operationRepository.save(Mockito.any(Operation.class))).then(AdditionalAnswers.returnsFirstArg());
 		Operation firstOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(5), 1L);
-		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(Set.of(firstOperation)).build()));
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(List.of(firstOperation)).build()));
 		Operation secondOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(10), 1L);
 		assertThat(new BigDecimal(15).compareTo(secondOperation.getBalanceAfterOperation()) == 0);
 	}
@@ -86,7 +87,7 @@ public class AccountServiceTest {
 		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
 		when(operationRepository.save(Mockito.any(Operation.class))).then(AdditionalAnswers.returnsFirstArg());
 		Operation firstOperation = accountServiceImplementation.processOperation(OperationType.DEPOSIT, new BigDecimal(100), 1L);
-		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(Set.of(firstOperation)).build()));
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(List.of(firstOperation)).build()));
 		assertThrows(NoEnoughFundsException.class, 
 				() -> { accountServiceImplementation.processOperation(OperationType.WITHDRAWAL, new BigDecimal(200), 1L); });
 	}
@@ -99,5 +100,12 @@ public class AccountServiceTest {
 		assertThrows(AccountNotFoundException.class, 
 				() -> { accountServiceImplementation.getAccountHistory(invalidAccountId); });
 	}
-	
+
+	@DisplayName("When checking history, a new account should return an empty operation list")
+	@Test
+	public void givenNoOperations_whenGetAccountHistory_thenReturnEmptyOperationList() {
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(account));
+		List<Operation> operationList = accountServiceImplementation.getAccountHistory(1L);
+		assertTrue(operationList.isEmpty());
+	}
 }

@@ -1,6 +1,6 @@
 package com.orhazal.bankingkata.domain;
 
-import java.util.Set;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,6 +30,6 @@ public class Account {
 	// TODO : thought about lastBalanceMovement (LocalTime) and lastBalanceOperation (Operation) columns but it is duplicated info, can be checked in Operation table
 
 	@OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
-	private Set<Operation> operations;
+	private List<Operation> operations;
 
 }

@@ -2,11 +2,13 @@ package com.orhazal.bankingkata.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.orhazal.bankingkata.domain.Account;
 import com.orhazal.bankingkata.domain.Operation;
@@ -60,7 +62,11 @@ public class AccountServiceImplementation implements AccountService {
 	public List<Operation> getAccountHistory(Long accountId) {
 		// Looking for the account
 		Account account = getAccountById(accountId);
-		return null;
+		if (CollectionUtils.isEmpty(account.getOperations())) {
+			return new ArrayList<Operation>();
+		}
+		return account.getOperations().stream().sorted(Comparator.comparing(Operation::getTimestamp).reversed()).toList();
+		
 	}
 
 	private Account getAccountById(Long accountId) {
