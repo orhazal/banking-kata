@@ -66,7 +66,6 @@ public class AccountServiceImplementation implements AccountService {
 			return new ArrayList<Operation>();
 		}
 		return account.getOperations().stream().sorted(Comparator.comparing(Operation::getTimestamp).reversed()).toList();
-		
 	}
 
 	private Account getAccountById(Long accountId) {

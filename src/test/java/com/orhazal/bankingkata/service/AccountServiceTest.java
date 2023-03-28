@@ -1,11 +1,14 @@
 package com.orhazal.bankingkata.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.Optional;
 
@@ -108,4 +111,44 @@ public class AccountServiceTest {
 		List<Operation> operationList = accountServiceImplementation.getAccountHistory(1L);
 		assertTrue(operationList.isEmpty());
 	}
+
+	@DisplayName("When checking history, an existing operation should be returned")
+	@Test
+	public void givenOperation_whenGetAccountHistory_thenReturnOperationList() {
+		Operation operation = Operation.builder()
+				.account(account)
+				.amount(BigDecimal.TEN)
+				.balanceAfterOperation(BigDecimal.TEN)
+				.timestamp(LocalDateTime.now())
+				.type(OperationType.DEPOSIT)
+				.build();
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(List.of(operation)).build()));
+		List<Operation> operationList = accountServiceImplementation.getAccountHistory(1L);
+		assertEquals(1, operationList.size());
+		assertEquals(operation, operationList.get(0));
+	}
+
+	@DisplayName("When checking history, operation list should be sorted starting from latest")
+	@Test
+	public void givenOperations_whenGetAccountHistory_thenReturnSortedOperationList() {
+		Operation firstOperation = Operation.builder()
+				.account(account)
+				.amount(BigDecimal.TEN)
+				.balanceAfterOperation(BigDecimal.TEN)
+				.timestamp(LocalDateTime.now())
+				.type(OperationType.DEPOSIT)
+				.build();
+		Operation secondOperation = Operation.builder()
+				.account(account)
+				.amount(BigDecimal.TWO)
+				.balanceAfterOperation(new BigDecimal(8))
+				.timestamp(LocalDateTime.now().plus(Period.ofDays(1)))
+				.type(OperationType.WITHDRAWAL)
+				.build();
+		when(accountRepository.findById(1L)).thenReturn(Optional.of(Account.builder().id(1L).operations(List.of(firstOperation, secondOperation)).build()));
+		List<Operation> operationList = accountServiceImplementation.getAccountHistory(1L);
+		assertEquals(2, operationList.size());
+		assertEquals(secondOperation, operationList.get(0));
+	}
+
 }
