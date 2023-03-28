@@ -90,5 +90,14 @@ public class AccountServiceTest {
 		assertThrows(NoEnoughFundsException.class, 
 				() -> { accountServiceImplementation.processOperation(OperationType.WITHDRAWAL, new BigDecimal(200), 1L); });
 	}
+
+	@DisplayName("When checking history, the accountId should return an existing account")
+	@Test
+	public void givenInvalidAccountId_whenGetAccountHistory_thenThrowsException() {
+		Long invalidAccountId = 10L;
+		when(accountRepository.findById(invalidAccountId)).thenReturn(Optional.empty());
+		assertThrows(AccountNotFoundException.class, 
+				() -> { accountServiceImplementation.getAccountHistory(invalidAccountId); });
+	}
 	
 }

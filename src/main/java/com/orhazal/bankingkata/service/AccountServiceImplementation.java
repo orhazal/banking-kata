@@ -16,6 +16,7 @@ import com.orhazal.bankingkata.exceptions.NoEnoughFundsException;
 import com.orhazal.bankingkata.exceptions.NullAmountException;
 import com.orhazal.bankingkata.repository.AccountRepository;
 import com.orhazal.bankingkata.repository.OperationRepository;
+import com.orhazal.bankingkata.service.utils.BigDecimalUtils;
 
 import lombok.AllArgsConstructor;
 
@@ -28,33 +29,24 @@ public class AccountServiceImplementation implements AccountService {
 
 	@Override
 	public Operation processOperation(OperationType type, BigDecimal amount, Long accountId) {
-		// Check for account
-		Optional<Account> account = accountRepository.findById(accountId);
-		if (!account.isPresent()) {
-			throw new AccountNotFoundException("Account not found with accountId : " + accountId);
-		}
+		// Looking for the account
+		Account account = getAccountById(accountId);
 		// Is the operation amount zero?
-		if (BigDecimal.ZERO.compareTo(amount) == 0) {
+		if (BigDecimalUtils.isZero(amount)) {
 			throw new NullAmountException("Cannot process a null amount for this operation");
 		}
 		// Get current balance from last operation
-		BigDecimal currentBalance;
-		if (account.get().getOperations() == null || account.get().getOperations().isEmpty()) {
-			currentBalance = BigDecimal.ZERO;
-		}
-		else {
-			currentBalance = account.get().getOperations().stream().max(Comparator.comparing(Operation::getTimestamp)).get().getBalanceAfterOperation();
-		}
+		BigDecimal currentBalance = getAccountBalance(account);
 		// Calculate new balance
 		BigDecimal balanceAfterOperation = OperationType.DEPOSIT.equals(type) ? currentBalance.add(amount) : currentBalance.subtract(amount);
 		// Check if balance is negative
-		if (balanceAfterOperation.signum() == -1) {
+		if (BigDecimalUtils.isNegative(balanceAfterOperation)) {
 			throw new NoEnoughFundsException(
 					String.format("No enough funds to withdraw this amount (%s) from your current balance (%s)", amount, currentBalance));
 		}
 		// Result operation building
 		Operation resultOperation = Operation.builder()
-				.account(account.get())
+				.account(account)
 				.amount(amount)
 				.balanceAfterOperation(balanceAfterOperation)
 				.timestamp(LocalDateTime.now())
@@ -66,8 +58,31 @@ public class AccountServiceImplementation implements AccountService {
 
 	@Override
 	public List<Operation> getAccountHistory(Long accountId) {
-		// TODO Auto-generated method stub
+		// Looking for the account
+		Account account = getAccountById(accountId);
 		return null;
+	}
+
+	private Account getAccountById(Long accountId) {
+		Optional<Account> account = accountRepository.findById(accountId);
+		if (!account.isPresent()) {
+			throw new AccountNotFoundException("Account not found with accountId : " + accountId);
+		}
+		return account.get();
+	}
+
+	private BigDecimal getAccountBalance(Account account) {
+		// Get account balance from last operation
+		BigDecimal currentBalance;
+		// If no operations in the account, the balance is zero
+		if (account.getOperations() == null || account.getOperations().isEmpty()) {
+			currentBalance = BigDecimal.ZERO;
+		}
+		else {
+			// Get the current balance from the last operation on the account (comparing and getting last date)
+			currentBalance = account.getOperations().stream().max(Comparator.comparing(Operation::getTimestamp)).get().getBalanceAfterOperation();
+		}
+		return currentBalance;
 	}
 
 }
