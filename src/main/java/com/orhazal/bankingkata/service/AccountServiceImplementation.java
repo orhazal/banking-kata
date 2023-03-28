@@ -69,7 +69,7 @@ public class AccountServiceImplementation implements AccountService {
 	}
 
 	private Account getAccountById(Long accountId) {
-		Optional<Account> account = accountRepository.findById(accountId);
+		Optional<Account> account = accountRepository.findById(accountId); // Or use orElseThrow? NoSuchElementException
 		if (!account.isPresent()) {
 			throw new AccountNotFoundException("Account not found with accountId : " + accountId);
 		}
